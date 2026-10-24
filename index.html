@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevVault | Developer Workspace</title>
+<style>
+:root{--bg:#0b1020;--panel:#131b2e;--line:#26324b;--text:#eef3ff;--muted:#91a0bc;--blue:#7c8cff;--green:#48d6a0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif}
+header{padding:24px 5%;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.brand{font-size:25px;font-weight:800}.brand span{color:var(--blue)}
+header p{color:var(--muted);margin:5px 0 0}
+main{max-width:1200px;margin:30px auto;padding:0 22px}
+.hero{padding:28px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(120deg,#182448,#131b2e)}
+.hero h1{margin:0 0 10px;font-size:clamp(25px,4vw,38px)}
+.hero p{color:var(--muted);line-height:1.6}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:22px 0}
+.stat,.panel,.snippet{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:19px}
+.stat span{color:var(--muted);font-size:13px}.stat h2{margin:9px 0 0;font-size:28px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}
+input,select,textarea{background:#0c1325;color:var(--text);border:1px solid var(--line);padding:12px;border-radius:9px;font:inherit;min-width:0}
+#search{flex:1;min-width:180px}
+button{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:12px 16px;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.12)}button.secondary{background:#26324b}button.danger{background:#8b344b}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:15px;margin-top:15px}
+.snippet{display:flex;flex-direction:column;gap:12px}
+.snippet h3{margin:0;font-size:18px}.tag{font-size:12px;background:#242e50;color:#bdc8ff;padding:5px 9px;border-radius:20px;display:inline-block}
+.snippet p{color:var(--muted);margin:0;line-height:1.5}
+pre{background:#090e1b;border:1px solid #222d43;border-radius:10px;padding:13px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;color:#b7f5d7;font-size:12px;min-height:75px}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:auto}.actions button{padding:8px 10px;font-size:12px}
+.empty{color:var(--muted);padding:28px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:18px;z-index:5}
+.modal.open{display:flex}.form{background:var(--panel);border:1px solid var(--line);padding:24px;border-radius:16px;width:min(550px,100%);display:grid;gap:12px;max-height:90vh;overflow:auto}
+.form h2{margin:0}.form input,.form select,.form textarea{width:100%}
+footer{text-align:center;color:var(--muted);padding:30px;font-size:13px}
+@media(max-width:600px){header{padding:18px}main{padding:0 14px}.stats{gap:8px}.stat{padding:12px}.stat h2{font-size:23px}.hero{padding:20px}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="brand">◈ Dev<span>Vault</span></div><p>Your personal developer workspace</p></div>
+  <button onclick="openForm()">+ Add Snippet</button>
+</header>
+<main>
+  <section class="hero">
+    <h1>Build. Save. Reuse. 🚀</h1>
+    <p>Keep your useful code snippets organized, find them instantly, and manage your portfolio projects in one place.</p>
+    <button onclick="openForm()">Save Your First Snippet</button>
+  </section>
+  <section class="stats">
+    <div class="stat"><span>Total snippets</span><h2 id="total">0</h2></div>
+    <div class="stat"><span>Languages</span><h2 id="languages">0</h2></div>
+    <div class="stat"><span>Favorites</span><h2 id="favorites">0</h2></div>
+  </section>
+  <section class="panel">
+    <div class="section-title"><h2>Code Library</h2><span class="tag">Your workspace</span></div>
+    <div class="toolbar">
+      <input id="search" placeholder="Search snippets..." oninput="render()">
+      <select id="filter" onchange="render()"><option value="All">All languages</option><option>JavaScript</option><option>Python</option><option>Java</option><option>C</option><option>HTML/CSS</option><option>SQL</option><option>Other</option></select>
+      <button class="secondary" id="favFilter" onclick="toggleFavFilter()">☆ Favorites</button>
+    </div>
+    <div id="list" class="grid"></div>
+  </section>
+  <section class="panel" style="margin-top:22px">
+    <div class="section-title"><h2>Portfolio Projects</h2><button onclick="addProject()">+ Add Project</button></div>
+    <p style="color:var(--muted)">Keep your project ideas and GitHub links together.</p>
+    <div id="projects" class="grid"></div>
+  </section>
+</main>
+<footer>DevVault · Personal Developer Workspace · Data is saved in this browser</footer>
+
+<div class="modal" id="modal">
+  <form class="form" id="snippetForm">
+    <h2 id="formTitle">Add a snippet</h2>
+    <input id="title" placeholder="Snippet title" required maxlength="80">
+    <select id="language" required><option value="">Choose language</option><option>JavaScript</option><option>Python</option><option>Java</option><option>C</option><option>HTML/CSS</option><option>SQL</option><option>Other</option></select>
+    <input id="description" placeholder="Short description" maxlength="180">
+    <textarea id="code" placeholder="Paste your code here..." rows="7" required></textarea>
+    <div class="toolbar" style="margin:0"><button type="submit">Save Snippet</button><button type="button" class="secondary" onclick="closeForm()">Cancel</button></div>
+  </form>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const read=(key,fallback)=>{try{const v=JSON.parse(localStorage.getItem(key));return Array.isArray(v)?v:fallback}catch{return fallback}};
+let snippets=read('devvault-snippets',[
+ {id:1,title:'JavaScript Greeting',language:'JavaScript',description:'A simple function that greets a user.',code:"function greet(name) {\\n  return `Hello, ${name}!`;\\n}\\n\\nconsole.log(greet('Developer'));",favorite:true},
+ {id:2,title:'Python List Example',language:'Python',description:'Loop through a list of items.',code:"languages = ['Python', 'Java', 'C']\\nfor language in languages:\\n    print(language)",favorite:false},
+ {id:3,title:'Java Main Method',language:'Java',description:'A basic Java program entry point.',code:'public class Main {\\n    public static void main(String[] args) {\\n        System.out.println("Hello, Developer!");\\n    }\\n}',favorite:false}
+]);
+let projects=read('devvault-projects',[]);
+let editing=null,onlyFavorites=false;
+function save(){localStorage.setItem('devvault-snippets',JSON.stringify(snippets));localStorage.setItem('devvault-projects',JSON.stringify(projects))}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ const q=$('search').value.toLowerCase(),lang=$('filter').value;
+ const visible=snippets.filter(s=>(s.title+' '+s.description+' '+s.code+' '+s.language).toLowerCase().includes(q)&&(lang==='All'||s.language===lang)&&(!onlyFavorites||s.favorite));
+ $('total').textContent=snippets.length;
+ $('languages').textContent=new Set(snippets.map(s=>s.language)).size;
+ $('favorites').textContent=snippets.filter(s=>s.favorite).length;
+ $('favFilter').textContent=onlyFavorites?'★ Showing favorites':'☆ Favorites';
+ $('list').innerHTML=visible.length?visible.map(s=>`<article class="snippet">
+ <div><span class="tag">${esc(s.language)}</span></div><h3>${esc(s.title)}</h3><p>${esc(s.description||'No description added.')}</p>
+ <pre>${esc(s.code)}</pre>
+ <div class="actions"><button class="secondary" onclick="copyCode(${s.id})">Copy code</button><button class="secondary" onclick="favorite(${s.id})">${s.favorite?'★':'☆'}</button><button class="secondary" onclick="editSnippet(${s.id})">Edit</button><button class="danger" onclick="deleteSnippet(${s.id})">Delete</button></div>
+ </article>`).join(''):'<div class="empty">No snippets found. Try another search or add a snippet.</div>';
+ $('projects').innerHTML=projects.length?projects.map((p,i)=>`<article class="snippet"><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><div class="actions">${p.url?`<button onclick="openProject(${i})">Open link ↗</button>`:''}<button class="danger" onclick="deleteProject(${i})">Delete</button></div></article>`).join(''):'<div class="empty">Your projects will appear here. Click “Add Project” to get started.</div>';
+}
+function openForm(s=null){editing=s?s.id:null;$('snippetForm').reset();$('formTitle').textContent=s?'Edit snippet':'Add a snippet';if(s){$('title').value=s.title;$('language').value=s.language;$('description').value=s.description;$('code').value=s.code}$('modal').classList.add('open')}
+function closeForm(){$('modal').classList.remove('open')}
+$('snippetForm').addEventListener('submit',e=>{e.preventDefault();const item={id:editing??Date.now(),title:$('title').value.trim(),language:$('language').value,description:$('description').value.trim(),code:$('code').value,favorite:editing?!!snippets.find(s=>s.id===editing)?.favorite:false};if(editing)snippets=snippets.map(s=>s.id===editing?item:s);else snippets.unshift(item);save();closeForm();render()});
+function editSnippet(id){const s=snippets.find(s=>s.id===id);if(s)openForm(s)}
+function deleteSnippet(id){if(confirm('Delete this snippet?')){snippets=snippets.filter(s=>s.id!==id);save();render()}}
+function favorite(id){snippets=snippets.map(s=>s.id===id?{...s,favorite:!s.favorite}:s);save();render()}
+async function copyCode(id){const s=snippets.find(s=>s.id===id);if(!s)return;try{await navigator.clipboard.writeText(s.code);alert('Code copied!')}catch{const t=document.createElement('textarea');t.value=s.code;document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();alert('Code copied!')}}
+function toggleFavFilter(){onlyFavorites=!onlyFavorites;render()}
+function addProject(){const name=prompt('Project name:');if(!name?.trim())return;const description=prompt('Short description:')||'';const url=prompt('GitHub or demo URL (optional):')||'';if(url&&!/^https?:\/\//i.test(url)){alert('Please enter a link starting with https:// or http://');return}projects.unshift({name:name.trim(),description,url});save();render()}
+function openProject(i){const url=projects[i]?.url;if(url&&/^https?:\/\//i.test(url))window.open(url,'_blank','noopener,noreferrer')}
+function deleteProject(i){if(confirm('Delete this project?')){projects.splice(i,1);save();render()}}
+$('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeForm()});
+render();
+</script>
+</body>
+</html>
